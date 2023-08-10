@@ -39,4 +39,91 @@
 
 <h1>Examples of minimum energy path calculations</h1>
 
-<p>These are example input scripts demonstrating the main features of the GNEB method implementation in mumax code</p>
+<p>These are example input scripts demonstrating the main features of the GNEB method implementation in mumax code.</p>
+
+
+<hr/><h2>States in a disk of chiral magnet</h2>
+
+We study the disk of diameter 1.5LD; the Hamiltonian consists of the exchange and DM interactions only.
+
+<a id=example1></a><pre>Ms := 384e3; Msat = Ms;
+nx := 128; ny := 128; nz := 32
+LD := 50.0e-9; //spin-spiral period
+Lx := 75e-9; Ly := 75e-9; Lz := 32e-9;
+dx := Lx/nx; dy := Ly/ny; dz := Lz/nz;
+SetGridsize(nx,ny,nz)
+SetCellsize(dx,dy,dz)
+//exchange
+A := 4.0e-12; Aex = A
+//bulk dmi
+D := 4.0 * pi * A / LD; Dbulk = D;
+EnableDemag = false // demagnetizing fields
+SetPBC(0, 0, 0) //boundary conditions 
+Noi := nz //number of images
+SetImagesNumber(noi)
+//turning on 2D gneb
+SetGNEB(1,0) 
+//regions: 1 inside disk, 255 -- outside
+for ix:=0; ix<nx; ix++{
+    rx := -1.0 + 2.*ix/nx
+    for iy:=0; iy<ny; iy++{ 
+        ry := -1.0 + 2.*iy/ny
+        if(sqrt(rx*rx + ry*ry) < 0.98){
+            for iz := 0; iz<nz; iz++{
+                DefRegionCell(0, ix, iy, iz)
+            }
+        }else{
+            for iz := 0; iz<nz; iz++{
+                DefRegionCell(255, ix, iy, iz)
+            }
+        }
+    }
+}
+//initial state: escaping skyrmion
+for ix:=0; ix<nx; ix++{
+    for iy:=0; iy<ny; iy++{ 
+        for iz := 0; iz<nz; iz++{
+            rx := -1.0 + 2.*ix/nx
+            ry := -1.0 + 2.*iy/ny
+            r := sqrt(rx*rx+ry*ry);
+            theta := pi*exp(-3*sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz))));
+            phi := 0.5*pi + atan2(ry,rx)
+            if(r>0.65 && abs(atan2(ry,rx)+0.5*pi)<0.75*pi){
+                theta = pi*(r-0.65)/0.35;
+                phi = -0.5*pi + atan2(ry,rx)
+            }
+            if(sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz)))<0.5){
+                theta = pi*exp(-3*sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz))));
+                phi = 0.5*pi + atan2(ry-1.0*(iz/nz),rx)
+            }
+            m1  := sin(theta)*cos(phi);
+            m2  := sin(theta)*sin(phi);
+            m3  := cos(theta);
+            mnew:=vector(m1, m2, m3);
+            m.SetCell(ix, iy, iz, mnew);
+        }
+    }
+}
+save(regions)
+Aex.setregion(255, 0)
+Dbulk.setregion(255, 0)
+m.setRegion(255, uniform(0,0, 1.0))
+save(m) //save initial state
+//GNEB parameters
+k_force =  1.0e3 //spring force constant
+MaxIter = 1e7 //Maximal number of iterations
+WritingIter = 100 //how often write to txt file
+MaxForce = 1e-7 // tolerance for forces
+stepsize = 2e-2 //step size in VPO method
+VPOminimize() // run VPO
+save(m) //save final state</pre>
+
+<p>This example should be pretty straight-forward to follow. Space-dependent output is stored in OVF format, which is compatible with OOMMF and can be converted with <a href="http://godoc.org/github.com/mumax/3/cmd/mumax3-convert"><code>mumax3-convert</code></a>. Below is the output converted to PNG.</p>
+
+<p>The data table is stored in a simple text format compatible with <a href=http://www.gnuplot.info>gnuplot</a>, like used for the plot below.</p>
+
+<h3>output</h3> 
+<figure style="float:left">
+	<img src="example1.out/m000000.png"/>
+	<figcaption> m000000 </figcaption>
+</figure>
