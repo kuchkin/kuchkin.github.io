@@ -46,7 +46,10 @@
 
 We study the disk of diameter 1.5LD; the Hamiltonian consists of the exchange and DM interactions only.
 
-<a id=example1></a><pre>Ms := 384e3; Msat = Ms;
+<a id=example1></a><pre>
+OutputFormat =  OVF2_BINARY
+// magnetization saturation
+Ms := 384e3; Msat = Ms;
 nx := 128; ny := 128; nz := 32
 LD := 50.0e-9; //spin-spiral period
 Lx := 75e-9; Ly := 75e-9; Lz := 32e-9;
@@ -116,7 +119,9 @@ WritingIter = 100 //how often write to txt file
 MaxForce = 1e-7 // tolerance for forces
 stepsize = 2e-2 //step size in VPO method
 VPOminimize() // run VPO
-save(m) //save final state</pre>
+save(m) //save final state
+	
+</pre>
 
 <p>This example should be pretty straight-forward to follow. All images belonging to the MEP are stored in OVF format. Below is the output converted to PNG.</p>
 
