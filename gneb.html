@@ -18,6 +18,19 @@
 </script>
 </head>
 
+
+<style>
+code {
+  font-family: Consolas,"courier new";
+  color: crimson;
+  background-color: #f1f1f1;
+  padding: 2px;
+  font-size: 105%;
+}
+</style>
+
+<body>
+
 <body>
 <div style="float:left">
 	<img src="nimble-cubes128.png"/>
@@ -47,6 +60,7 @@
 We study the disk of diameter 1.5LD; the Hamiltonian consists of the exchange and DM interactions only.
 
 <a id=example1></a><pre>
+<code>
 OutputFormat =  OVF2_BINARY
 // magnetization saturation
 Ms := 384e3; Msat = Ms;
@@ -120,7 +134,7 @@ MaxForce = 1e-7 // tolerance for forces
 stepsize = 2e-2 //step size in VPO method
 VPOminimize() // run VPO
 save(m) //save final state
-	
+</code>	
 </pre>
 
 <p>This example should be pretty straight-forward to follow. All images belonging to the MEP are stored in OVF format. Below is the output converted to PNG.</p>
