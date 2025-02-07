@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Results</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Code</h2>
+    <pre><code id="codeBlock">console.log('Simulation Running...');</code></pre>
+    
+    <h2>Simulation Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTable">
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+    
+    <h2>Plot</h2>
+    <div id="plot"></div>
+    
+    <script>
+        // Example simulation data
+        const data = [
+            { time: 0, value: 10 },
+            { time: 1, value: 15 },
+            { time: 2, value: 22 },
+            { time: 3, value: 30 },
+            { time: 4, value: 45 }
+        ];
+        
+        // Populate table
+        const tableBody = document.getElementById("resultsTable");
+        data.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${row.time}</td><td>${row.value}</td>`;
+            tableBody.appendChild(tr);
+        });
+        
+        // Generate plot
+        Plotly.newPlot('plot', [{
+            x: data.map(d => d.time),
+            y: data.map(d => d.value),
+            type: 'scatter',
+            mode: 'lines+markers',
+            marker: { color: 'blue' }
+        }], { title: 'Simulation Data' });
+    </script>
+</body>
+</html>
