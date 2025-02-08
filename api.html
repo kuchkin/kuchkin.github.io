@@ -27,7 +27,7 @@
 </div>
 
 <div style="float:left">
-<span style="font-size:48px"><b>mumax</b><sup>3</sup><br/></span>
+<span style="font-size:48px"><b>mumax</b><sup>3</sup><b> + gneb</b><br/></span>
 	GPU-accelerated micromagnetism <br/><br/>
 	<a class="pure-button pure-button-primary" href="index.html">Home</a>
 	<a class="pure-button pure-button-primary" href="download.html">Download</a>
@@ -299,7 +299,12 @@ SetGeom(geometryShape)
 	 <p style="margin-left:40px" class="api-docstring"> Sets GridSize, CellSize and PBC at the same time </p> 
 
 	
-
+	</p>
+	</div>
+  
+	<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">SetMeshGNEB</b>(int, int, int, int, float64, float64, float64, int, int, int, int, int) </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Sets GridSize, Noi, CellSize, PBC, GNEB2D, GNEB3D at the same time </p>
 	
 
 	</p>
@@ -8505,6 +8510,41 @@ tableAdd(E_custom)  // Add a column with the energy related to the custom field
 		</p> 
 	
 
+		</p>
+	</div>
+  
+	<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">VPOMinimize</b>() </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Use VPO method to minimize the total energy, or forces in the GNEB method </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p> 
+
+
+
+	</p>
+	</div>
+
+
+		<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">SavePath</b>(m, Noi) </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Saving each image into a separate ovf file  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example23">[2]</a> 
+		 
+		</p> 
+
+
+
 	</p>
 	</div>
   
@@ -8602,6 +8642,65 @@ tableAdd(E_custom)  // Add a column with the energy related to the custom field
 		 
 		</p> 
 	
+<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">StepSize</b> </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Step size used in the VPO method  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
+
+		<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">k_force</b> </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Spring constant in the GNEB method  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
+
+<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">WritingIter</b> </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Saving MEP during the GNEB simulations every WritingIter iteration  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
+
+		<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">MaxIter</b> </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Maximal number of steps of the VPO algorithm  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
+
+		<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">MaxForce</b> </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Average force over all images in GNEB method is used for a convergence criterion.  </p> 
+
+	
+
+	 <p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
 
 	</p>
 	</div>
@@ -9422,9 +9521,20 @@ tableAdd(E_custom)  // Add a column with the energy related to the custom field
 	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">SetMesh</b>(int, int, int, float64, float64, float64, int, int, int) </span> 
 	 <p style="margin-left:40px" class="api-docstring"> Sets GridSize, CellSize and PBC at the same time </p> 
 
-	
 
 	
+	</p>
+	</div>
+  
+	<div class="api-entry">
+	<p><span style="color:#000088; font-size:1.5em; font-family: monospace"> <b class="api-identifier">SetMeshGNEB</b>(int, int, int, int, float64, float64, float64, int, int, int, int, int) </span> 
+	 <p style="margin-left:40px" class="api-docstring"> Sets GridSize, Noi, CellSize, PBC, GNEB2D, GNEB3D at the same time </p>
+	
+	<p style="margin-left:40px; color:grey"> gneb examples: 
+		 
+			<a href="gneb.html#example1">[1]</a> 
+		 
+		</p>
 
 	</p>
 	</div>

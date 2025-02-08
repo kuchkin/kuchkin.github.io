@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>mumax3</title>
-	<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css">
-	<link rel="stylesheet" type="text/css" href="style.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>mumax3 + GNEB method</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -18,129 +19,165 @@
 </script>
 </head>
 
-
-<style>
-code {
-  font-family: Consolas,"courier new";
-  color: crimson;
-  background-color: #f1f1f1;
-  padding: 2px;
-  font-size: 105%;
-}
-</style>
-
-<body>
-
 <body>
 <div style="float:left">
-	<img src="nimble-cubes128.png"/>
+    <img src="nimble-cubes128.png"/>
 </div>
 
 <div style="float:left">
-<span style="font-size:48px"><b>mumax</b><sup>3</sup><br/></span>
-	GPU-accelerated micromagnetism <br/><br/>
-	<a class="pure-button pure-button-primary" href="index.html">Home</a>
-	<a class="pure-button pure-button-primary" href="download.html">Download</a>
-	<a class="pure-button pure-button-primary" href="examples.html">Examples</a>
-	<a class="pure-button pure-button-primary" href="gneb.html">GNEB</a>
-	<a class="pure-button pure-button-primary" href="mmm.html">MMM</a>
-	<a class="pure-button pure-button-primary" href="api.html">API</a>
-	<a class="pure-button pure-button-primary" href="https://groups.google.com/forum/#!forum/mumax2">Forum</a>
+<span style="font-size:48px"><b>mumax</b><sup>3</sup><b> + gneb</b><br/></span>
+    GPU-accelerated micromagnetism <br/><br/>
+    <a class="pure-button pure-button-primary" href="index.html">Home</a>
+    <a class="pure-button pure-button-primary" href="download.html">Download</a>
+    <a class="pure-button pure-button-primary" href="examples.html">Examples</a>
+    <a class="pure-button pure-button-primary" href="gneb.html">GNEB Examples</a>
+    <a class="pure-button pure-button-primary" href="api.html">API</a>
+    <a class="pure-button pure-button-primary" href="https://groups.google.com/forum/#!forum/mumax2">Forum</a>
 </div>
-<br style="clear:both"/> 
+<br style="clear:both"/>
 
 <hr/>
 
-<h1>Examples of minimum energy path calculations</h1>
+<h1>Key points:</h1>
+<p> 1. The entire system is simulated at once, and all images are placed one on top of another along the z-axis. </p>
 
-<p>These are example input scripts demonstrating the main features of the GNEB method implementation in mumax code.</p>
+<p> Meaning, if a system is discretized into Nx*Ny*Nz cuboids and we want to simulate Noi images, the total system size is Nx*Ny*(Nz*Noi).</p>
 
+<p> 2. Geom() is not implemented for the GNEB simulations. </p>
+<p> One must use the DefRegionCell() function to simulate various shapes. Region number 255 is non-magnetic. </p>
 
-<hr/><h2>States in a disk of chiral magnet</h2>
+<p> 3. Custom fields are not applicable for the GNEB simulations. </p>
 
-We study the disk of diameter 1.5LD; the Hamiltonian consists of the exchange and DM interactions only.
+<p> 4. For simulations with demagnetizing fields enabled, the corresponding kernel has to be precomputed with an additional mumax3 script (see examples below).</p> 
+<p> The stored kernel in ~/tmp/ directory will be used for GNEB simulations. Note that the number of cuboids, images, and cuboid size must be the same. </p>
 
-<a id=example1></a><pre>
-<code>
-OutputFormat =  OVF2_BINARY
-// magnetization saturation
-Ms := 384e3; Msat = Ms;
-nx := 128; ny := 128; nz := 32
-LD := 50.0e-9; //spin-spiral period
-Lx := 75e-9; Ly := 75e-9; Lz := 32e-9;
-dx := Lx/nx; dy := Ly/ny; dz := Lz/nz;
-SetGridsize(nx,ny,nz)
-SetCellsize(dx,dy,dz)
-//exchange
-A := 4.0e-12; Aex = A
-//bulk dmi
-D := 4.0 * pi * A / LD; Dbulk = D;
-EnableDemag = false // demagnetizing fields
-SetPBC(0, 0, 0) //boundary conditions 
-Noi := nz //number of images
-SetImagesNumber(noi)
-//turning on 2D gneb
-SetGNEB(1,0) 
-//regions: 1 inside disk, 255 -- outside
-for ix:=0; ix<nx; ix++{
-    rx := -1.0 + 2.*ix/nx
-    for iy:=0; iy<ny; iy++{ 
-        ry := -1.0 + 2.*iy/ny
-        if(sqrt(rx*rx + ry*ry) < 0.98){
-            for iz := 0; iz<nz; iz++{
-                DefRegionCell(0, ix, iy, iz)
-            }
-        }else{
-            for iz := 0; iz<nz; iz++{
-                DefRegionCell(255, ix, iy, iz)
+<p> 5. The GNEB method is <b>very</b> sensitive to the initial guess for the path between given to states. </p>
+<p> Approaches to generate such a guess represent a separate problem and won't be covered here</p>
+<p> Partially, the problem and possible solutions were discussed in the Section 4: <a href="https://publications.rwth-aachen.de/record/855848/files/855848.pdf">2D skyrmion homotopies</a>.</p> 
+
+<h1>mumax3 + gneb examples</h1>
+
+<p>These are example input scripts for gneb simulations, the full API can be found <a href="http://kuchkin.github.io/api.html">here</a>.</p>
+
+<body>
+    <h2>Magnetization switching</h2>
+    <a id=example1></a><pre><code>
+nx := 1; ny := 1; nz := 1; noi := 31; //Discretization
+dx := 1e-9;         // cuboid size
+SetMeshGNEB(nx, ny, nz*noi, noi , dx, dx, dx, 0, 0, 0, 1 , 0 )
+
+// Material parameters
+EnableDemag = false
+Ms := 200e3;
+Msat  = Ms
+Ku1 = 1.0           //anisotropy
+anisU = vector(0, 0, 1)
+
+//Initial state
+// we start with a non-uniform rotation
+// solution will be a uniform rotation 
+for i:=0; i&lt;noi; i++{
+    Th := pi*sqrt(i/(noi-1));
+    mnew := vector(0, sin(Th), cos(Th));
+    m.SetCell(0, 0, i, mnew);
+}
+save(m)             //save initial state
+
+//GNEB relaxation parameters
+k_force =  1.0e2    // spring force constant
+MaxIter = 1e7       // Maximal number of iterations
+WritingIter = 100   // how often write to table.txt
+MaxForce = 5e-6     // tolerance for forces
+StepSize = 3e-3     // step size in VPO method
+VPOminimize()       // run VPO
+save(m)             // save final state
+    </code></pre>
+    
+    <h3>output</h3>
+    <div>
+        <img src="gneb_png/ini1.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+        <img src="gneb_png/out1.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+        <img src="gneb_png/rc1.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+    </div>
+
+<h2>Magnetization switching in a Г-shaped domain</h2>
+<h3>Kernel calculation script</h3>
+    <a id=example21></a><pre><code>
+nx := 32; ny := 64; nz := 1; noi := 31; //Discretization
+dx := 4e-9;         // cuboid size
+SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 0, 0, 0, 0, 0 )
+// Material parameters
+EnableDemag = true
+Msat = 200e3;
+MaxIter = 1         // Maximal number of iterations
+VPOminimize()       // run VPO
+    </code></pre>
+    
+    <h3>output</h3>
+    <pre><code>
+//Did not use cached kernel: open /tmp/mumax3kernel_[32 64 1]_[0 0 0]_[4e-09 4e-09 4e-09]_6_0 0.ovf: no such file or directory
+// Calculating demag kernel 0 %
+// Calculating demag kernel 100 %
+//Cached kernel: /tmp/mumax3kernel_[32 64 31]_[0 0 0]_[4e-09 4e-09 4e-09]_6_
+    </code></pre>
+
+<h3>MEP calculation</h3>
+    <a id=example22></a><pre><code>
+nx := 32; ny := 64; nz := 31; noi := 31; //Discretization
+dx := 4e-9;         // cuboid size
+SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 0, 0, 0, 1 , 0 )
+
+// Material parameters
+EnableDemag = true
+Msat = 200e3;
+Aex = 13e-12;
+
+// Define shape and generating initial state
+for k:=0; k&lt;noi; k++{
+    for i:=0; i&lt;nx; i++{
+        for j:=0; j&lt;ny; j++{
+            if(i&gt;nx/2 && j &lt; 3*ny/4){
+                DefRegionCell(255, i, j, k)
+            }else{
+                DefRegionCell(0, i, j, k);
+                //uniform rotation:
+                Th := pi*(k+5)/(noi+7);
+                mnew := vector(sin(Th), cos(Th), 0);
+                m.SetCell(i, j, k, mnew);
             }
         }
-    }
+    }   
 }
-//initial state: escaping skyrmion
-for ix:=0; ix<nx; ix++{
-    for iy:=0; iy<ny; iy++{ 
-        for iz := 0; iz<nz; iz++{
-            rx := -1.0 + 2.*ix/nx
-            ry := -1.0 + 2.*iy/ny
-            r := sqrt(rx*rx+ry*ry);
-            theta := pi*exp(-3*sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz))));
-            phi := 0.5*pi + atan2(ry,rx)
-            if(r>0.65 && abs(atan2(ry,rx)+0.5*pi)<0.75*pi){
-                theta = pi*(r-0.65)/0.35;
-                phi = -0.5*pi + atan2(ry,rx)
-            }
-            if(sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz)))<0.5){
-                theta = pi*exp(-3*sqrt(rx*rx+(ry-1.0*(iz/nz))*(ry-1.0*(iz/nz))));
-                phi = 0.5*pi + atan2(ry-1.0*(iz/nz),rx)
-            }
-            m1  := sin(theta)*cos(phi);
-            m2  := sin(theta)*sin(phi);
-            m3  := cos(theta);
-            mnew:=vector(m1, m2, m3);
-            m.SetCell(ix, iy, iz, mnew);
-        }
-    }
-}
-save(regions)
 Aex.setregion(255, 0)
-Dbulk.setregion(255, 0)
-m.setRegion(255, uniform(0,0, 1.0))
-save(m) //save initial state
-//GNEB parameters
-k_force =  1.0e3 //spring force constant
-MaxIter = 1e7 //Maximal number of iterations
-WritingIter = 100 //how often write to txt file
-MaxForce = 1e-7 // tolerance for forces
-stepsize = 2e-2 //step size in VPO method
-VPOminimize() // run VPO
-save(m) //save final state
-</code>	
-</pre>
+NoDemagSpins.SetRegion(255, 1) 
+m.setRegion(255, uniform(0,0,1))
 
-<p>This example should be pretty straight-forward to follow. All images belonging to the MEP are stored in OVF format. Below is the output converted to PNG.</p>
+// GNEB relaxation parameters
+k_force =  1.0e2    // spring force constant
+MaxIter = 1e7       // Maximal number of iterations
+WritingIter = 100   // how often write to txt file0
+MaxForce = 5e-7     // tolerance for forces
+stepsize = 3e-2     // step size in VPO method
+VPOminimize()       // run VPO
+save(m)             // save final state
+    </code></pre>
+<h3>output</h3>
+<div>
+        <img src="gneb_png/out2.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+        <img src="gneb_png/G-shape.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+    </div>
+<h3>Converting path to a set of images</h3>
+    <a id=example23></a><pre><code>
+// system discretization
+setgridsize(32, 64, 31)
+setcellsize(4e-9,4e-9,4e-9)
 
-<figure style="float:left">
-	<img src="gneb_example/disk_mep.png"/>
-	<figcaption> Minimum energy path for the states in a disk of chiral magnet </figcaption>
-</figure>
+//loading relaxed path
+m.LoadFile("G-shape.ovf")
+//saving each image as a separate ovf file
+SavePath(m, 31)  
+    </code></pre>
+    
+    
+</body>
+</html>
