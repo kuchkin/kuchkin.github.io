@@ -38,6 +38,8 @@
 
 <hr/>
 
+<p>These are example input scripts for gneb simulations, the full API can be found <a href="http://kuchkin.github.io/api.html">here</a>.</p>
+
 <h1>Key points:</h1>
 <p> 1. The entire system is simulated at once, and all images are placed one on top of another along the z-axis. </p>
 
@@ -55,10 +57,7 @@
 <p> Approaches to generate such a guess represent a separate problem and won't be covered here</p>
 <p> Partially, the problem and possible solutions were discussed in Section 4: <a href="https://publications.rwth-aachen.de/record/855848/files/855848.pdf">2D skyrmion homotopies</a>.</p> 
 
-<h1>mumax3 + gneb examples</h1>
-
-<p>These are example input scripts for gneb simulations, the full API can be found <a href="http://kuchkin.github.io/api.html">here</a>.</p>
-
+<h1>1D system</h1>
 <body>
     <h2>Magnetization switching</h2>
     <a id=example1></a><pre><code>
@@ -99,6 +98,8 @@ save(m)             // save final state
         <img src="gneb_png/out1.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
         <img src="gneb_png/rc1.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
     </div>
+
+<h1>2D system</h1>
 
 <h2>Magnetization switching in a Г-shaped domain</h2>
 <h3>Kernel calculation script</h3>
@@ -177,7 +178,82 @@ m.LoadFile("G-shape.ovf")
 //saving each image as a separate ovf file
 SavePath(m, 31)  
     </code></pre>
-    
-    
+
+<h2>Skyrmionium-Ferromagnet continuous transformation</h2>
+<h3>Generating initial path</h3>
+    <a id=example31></a><pre><code>
+nx := 256; ny := 256; nz := 31; noi := 31; //Discretization
+dx := 1.09375e-9; // cuboid size to have 4LD by 4LD system
+SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 1, 1, 0, 1, 0)
+
+// Material parameters
+EnableDemag = false
+Ms := 384e3;    Msat = Ms;
+A := 4.0e-12;   Aex = A;
+LD := 70e-9;        //spin-spiral period in FeGe
+D := 4.0 * pi * A / LD; Dbulk = D
+BD := D*D/(2*A*Ms); //saturation field
+B_ext = vector(0, 0, 0.7*BD)
+
+//Initial state
+m = uniform(0, 0, 1)
+m = BlochSkyrmion(1,-1).scale(7,7,1)
+m.setInShape(cylinder(1*LD, Noi*dx), BlochSkyrmion(-1,1).scale(2,2,1))
+
+//adding a local magnetic field
+//to initiate domain wall breaking
+mask := newVectorMask(Nx, Ny, Nz)
+for k:=0; k&lt;Nz; k++{
+    for i:=25; i&lt;Nx/2; i++{
+        for j:=0; j&lt;Ny/2; j++{
+            mask.setVector(Nx/2 + i, Ny/2 + j, k, vector(0, 0, 19*sqrt(1.0*k+1)))
+        }
+    }
+}
+B_ext.add(mask, BD)
+
+//Relaxation parameters
+DoRelax = 1;        //relax all images separately
+MaxIter = 3e3       // Maximal number of iterations
+MaxForce = 5e-7     // tolerance for forces
+stepsize = 3e-2     // step size in VPO method
+VPOminimize()       // run VPO
+save(m)             // save final state
+    </code></pre>
+
+<h3>Optimizing the obtained initial guess with the GNEB method</h3>
+    <pre><code>
+nx := 512; ny := 512; nz := 31; noi := 31; //Discretization
+dx := 0.5*1.09375e-9; // cuboid size
+SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 1, 1, 0, 1, 0)
+
+// Material parameters
+EnableDemag = false
+Ms := 384e3;    Msat = Ms;
+A := 4.0e-12;   Aex = A;
+LD := 70e-9;    //spin-spiral period in FeGe
+D := 4.0 * pi * A / LD; Dbulk = D
+BD := D*D/(2*A*Ms); //saturation field
+B_ext = vector(0, 0, 0.63*BD)
+
+//Initial state
+m.LoadFile("ini_path.ovf")
+
+//GNEB relaxation parameters
+k_force =  1.0e1        // spring force constant
+MaxIter = 1e7           // Maximal number of iterations
+WritingIter = 100       // how often write to txt file0
+MaxForce = 5e-8         // tolerance for forces
+stepsize = 3e-2         // step size in VPO method
+VPOminimize()           // run VPO
+save(m)                 // save final state
+    </code></pre>
+<h3>output</h3>
+<div>
+        <img src="gneb_png/skyrmionium_mep.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+        <img src="gneb_png/fff.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+    </div>
+<h1>3D system</h1>
+
 </body>
 </html>
