@@ -191,9 +191,9 @@ SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 1, 1, 0, 1, 0)
 // Material parameters
 EnableDemag = false
 Ms := 384e3;    Msat = Ms;
-A := 4.0e-12;   Aex = A;
+A  := 4.0e-12;  Aex = A;
 LD := 70e-9;        //spin-spiral period in FeGe
-D := 4.0 * pi * A / LD; Dbulk = D
+D  := 4.0*pi*A/LD; Dbulk = D
 BD := D*D/(2*A*Ms); //saturation field
 B_ext = vector(0, 0, 0.7*BD)
 
@@ -215,7 +215,7 @@ for k:=0; k&lt;Nz; k++{
 B_ext.add(mask, BD)
 
 //Relaxation parameters
-DoRelax = 1;        //relax all images separately
+DoRelax = 1;        // relax all images separately
 MaxIter = 3e3       // Maximal number of iterations
 MaxForce = 5e-7     // tolerance for forces
 stepsize = 3e-2     // step size in VPO method
@@ -224,7 +224,7 @@ save(m)             // save final state
     </code></pre>
 
 <h3>Optimizing the obtained initial guess with the GNEB method</h3>
-    <pre><code>
+    <a id=example32></a><pre><code>
 nx := 512; ny := 512; nz := 31; noi := 31; //Discretization
 dx := 0.5*1.09375e-9; // cuboid size
 SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 1, 1, 0, 1, 0)
@@ -232,9 +232,9 @@ SetMeshGNEB(nx, ny, nz, noi , dx, dx, dx, 1, 1, 0, 1, 0)
 // Material parameters
 EnableDemag = false
 Ms := 384e3;    Msat = Ms;
-A := 4.0e-12;   Aex = A;
-LD := 70e-9;    //spin-spiral period in FeGe
-D := 4.0 * pi * A / LD; Dbulk = D
+A  := 4.0e-12;  Aex = A;
+LD := 70e-9;        //spin-spiral period in FeGe
+D  := 4.0 * pi * A / LD; Dbulk = D
 BD := D*D/(2*A*Ms); //saturation field
 B_ext = vector(0, 0, 0.63*BD)
 
@@ -256,6 +256,94 @@ save(m)                 // save final state
         <img src="gneb_png/fff.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
     </div>
 <h1>3D system</h1>
+<h2>Heliknoton (hopfion) escape through the open surface</h2>
+<h3>Generating initial path and its optimization with the GNEB method</h3>
+    <a id=example41></a><pre><code>
+nx := 64; ny := 64; nz := 32; noi := 31; // Discretization
+dx := 210e-9/64;            // cuboid size corresponds to box 3LDx3LDx2LD 
+SetMeshGNEB(nx, ny, nz*noi, noi , dx, dx, dx, 1, 1, 0, 0, 1)
 
+// Material parameters for FeGe
+EnableDemag = false
+Ms := 384e3;    Msat = Ms;   // Magnetization saturation
+A  := 4.0e-12;  Aex = A;     // Exchange constant
+LD := 70e-9;                 // spin-spiral period 
+D  := 4.0*pi*A/LD; Dbulk = D // DMI constant
+
+//Initial state
+
+// Running this part of code is a bit slow.
+// It makes sense to save this spin texture,
+// and then just use the stored state.
+
+for q:=0; q&lt;noi; q++{
+    img := 0.8*q/(noi-1)
+    for k:=0; k&lt;nz; k++{
+        for i:=0; i&lt;nx; i++{
+            for j:=0; j&lt;ny; j++{
+                x   := -1.5 + 3.0*i/(nx-1) + 1e-8;
+                y   := -1.5 + 3.0*j/(ny-1) + 1e-8;
+                z   := -1.0 + 2.0*k/(nz-1) + 1e-8 - img;
+                r   := sqrt(x*x + y*y + z*z);
+                // ansatz from: doi.org/10.3389/fphy.2023.1201018
+                G   := 2.0*atan(exp(-2.0*r)/r);
+                mx  := y*sin(2.0*G)/r + 2.0*sin(G)*sin(G)*x*z/(r*r);
+                my  := x*sin(2.0*G)/r - 2.0*sin(G)*sin(G)*y*z/(r*r);
+                mz  :=   cos(2.0*G)   + 2.0*sin(G)*sin(G)*z*z/(r*r);
+                // spiralization
+                phi  := 2*pi*y
+                mnew := vector( mx*cos(phi)+mz*sin(phi), my,
+                                mz*cos(phi)-mx*sin(phi));
+                m.SetCell(i, j, k + nz*q, mnew);
+            }
+        }   
+    }
+}
+save(m)
+//m.LoadFile("ini_state.ovf")
+
+//GNEB relaxation parameters
+k_force =  1.0e3    // spring force constant
+MaxIter = 1e7       // Maximal number of iterations
+WritingIter = 100   // how often write to txt file
+MaxForce = 1e-8     // tolerance for forces
+stepsize = 2e-2     // step size in VPO method
+VPOminimize()       // run VPO
+
+save(m)             // save final state
+SavePath(m, noi)    // save as separate files
+    </code></pre>
+    <h3>output</h3>
+    <div>
+        <img src="gneb_png/helik.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+        <img src="gneb_png/helik_states.png" alt="Simulation Plot" style="max-width:100%; height:auto;">
+    </div>
+<h3>Despiralization procedure</h3>
+    <a id=example42></a><pre><code>
+nx := 64; ny := 64; nz := 32; noi := 31; //Discretization
+dx := 210e-9/64;  
+SetMesh(nx, ny, nz, dx, dx, dx, 1, 1, 0)
+
+//Despiralization:
+// transforms spiral state (cos(q*y), 0, sin(q*y))
+// into the saturated state (0,0,1)
+for i:=0; i&lt;noi; i++{
+    s := Sprintf("image%d.ovf", i)
+    m.LoadFile(s)
+    for j:=0; j&lt;ny; j++{
+        y    := -1.5 + 3.0*j/(ny-1) + 1e-8;
+        phi  := -2*pi*y
+        for k:=0; k&lt;nz; k++{
+            for i:=0; i&lt;nx; i++{
+            m0   := m.GetCell(i,j,k);
+            mnew := vector(m0[0]*cos(phi) + m0[2]*sin(phi), m0[1],
+                           m0[2]*cos(phi) - m0[0]*sin(phi))
+            m.SetCell(i, j, k, mnew);
+        }
+    }   
+}
+save(m)
+}
+    </code></pre>
 </body>
 </html>
