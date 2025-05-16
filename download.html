@@ -31,13 +31,13 @@
 
 <div style="float:left">
 <span style="font-size:48px"><b>mumax</b><sup>3</sup><b> + gneb</b><br/></span>
-	GPU-accelerated micromagnetism <p style="color: red; font-weight: bold;"> Note that this is an extension and is not available in the original mumax<sup>3</sup> code!</p><br/><br/>
+	<p style="color: red; font-weight: bold;"> Note that this is an extension and is not available in the original mumax<sup>3</sup> code!</p><br/><br/>
 	<a class="pure-button pure-button-primary" href="index.html">Home</a>
 	<a class="pure-button pure-button-primary" href="download.html">Download</a>
 	<a class="pure-button pure-button-primary" href="examples.html">Examples</a>
 	<a class="pure-button pure-button-primary" href="gneb.html">GNEB Examples</a>
 	<a class="pure-button pure-button-primary" href="api.html">API</a>
-	<a class="pure-button pure-button-primary" href="https://groups.google.com/forum/#!forum/mumax2">Forum</a>
+	<a class="pure-button pure-button-primary" href="https://groups.google.com/g/mumaxgneb">Forum</a>
 </div>
 <br style="clear:both"/> 
 
@@ -54,11 +54,65 @@ To run mumax3.10 you need
 </ul>
 
 
-<h2> Building mumax3.10 from the source </h2>
 
-An older version of Golang (go9.1) has to be used.
 
-The source code of mumax3.10 as well as the build instructions for linux can be found on <a href="https://github.com/kuchkin/mumax3-gneb">github</a>.
+
+<h2>Setup Commands for mumax3-gneb</h2>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>sudo apt install golang-go</code>
+        <p class="description">Installs the Go programming language on your system.</p>
+    </div>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>mkdir -p ~/go/src/github.com/kuchkin</code>
+        <p class="description">Creates the necessary directory structure for Go workspace following the standard Go project layout.</p>
+    </div>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>cd go/src/github.com/kuchkin/</code>
+        <p class="description">Changes the current directory to the newly created path to prepare for cloning the repository.</p>
+    </div>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>git clone https://github.com/kuchkin/mumax3-gneb.git</code>
+        <p class="description">Clones the mumax3-gneb repository from GitHub into the current directory.</p>
+    </div>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>go mod init github.com/kuchkin/mumax3-gneb</code>
+        <p class="description">Initializes a new Go module for dependency management inside the project directory.</p>
+    </div>
+
+    <div class="command-block">
+        <button class="copy-btn" onclick="copyCommand(this)">Copy</button>
+        <code>make realclean &amp;&amp; make</code>
+        <p class="description">Cleans up previous build files and compiles the project using the Makefile.</p>
+    </div>
+
+    <script>
+        function copyCommand(button) {
+            const codeElement = button.nextElementSibling;
+            const textToCopy = codeElement.textContent;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = button.textContent;
+                button.textContent = "Copied!";
+                button.disabled = true;
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 1500);
+            }).catch(err => {
+                alert('Failed to copy text: ' + err);
+            });
+        }
+    </script>
 
 
 </body>
